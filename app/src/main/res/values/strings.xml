@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">BrownDust Bot</string>
+    <string name="accessibility_service_label">BrownDust2 自动化服务</string>
+    <string name="accessibility_service_description">用于自动点击、滑动等操作的无障碍服务</string>
+    <string name="btn_request_overlay">请求悬浮窗权限</string>
+    <string name="btn_open_accessibility">开启无障碍服务</string>
+    <string name="btn_request_capture">请求截屏权限</string>
+    <string name="btn_start_task">开始任务</string>
+    <string name="btn_stop_task">停止任务</string>
+    <string name="btn_load_config">加载配置</string>
+    <string name="status_idle">状态：空闲</string>
+    <string name="status_running">状态：运行中</string>
+    <string name="status_stopped">状态：已停止</string>
+    <string name="channel_name">BrownDust Bot</string>
+    <string name="channel_description">BrownDust2 游戏自动化工具</string>
+    <string name="notification_title">BrownDust Bot</string>
+    <string name="notification_text">自动化服务运行中</string>
+    <string name="floating_start">开始</string>
+    <string name="floating_pause">暂停</string>
+    <string name="floating_stop">停止</string>
+</resources>
