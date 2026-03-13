@@ -12,6 +12,8 @@ import android.util.DisplayMetrics
 import android.widget.Button
 import android.widget.TextView
 import android.widget.Toast
+import androidx.activity.result.ActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
@@ -38,8 +40,31 @@ class MainActivity : AppCompatActivity() {
     private val logBuilder = StringBuilder()
 
     companion object {
-        private const val REQUEST_OVERLAY_PERMISSION = 1001
         private const val REQUEST_NOTIFICATION_PERMISSION = 1002
+    }
+
+    private val overlayPermissionLauncher = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) { _: ActivityResult ->
+        if (Settings.canDrawOverlays(this)) {
+            toast("悬浮窗权限已授权")
+            startFloatingWindowService()
+        } else {
+            toast("悬浮窗权限被拒绝")
+        }
+    }
+
+    private val screenCaptureLauncher = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) { result: ActivityResult ->
+        if (result.resultCode == Activity.RESULT_OK && result.data != null) {
+            val metrics = getDisplayMetrics()
+            screenCaptureManager.init(result.resultCode, result.data!!, metrics)
+            appendLog("截屏权限已授权")
+            toast("截屏权限已授权")
+        } else {
+            toast("截屏权限被拒绝")
+        }
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -76,8 +101,7 @@ class MainActivity : AppCompatActivity() {
                     Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
                     Uri.parse("package:$packageName")
                 )
-                @Suppress("DEPRECATION")
-                startActivityForResult(intent, REQUEST_OVERLAY_PERMISSION)
+                overlayPermissionLauncher.launch(intent)
             } else {
                 toast("已有悬浮窗权限")
             }
@@ -95,7 +119,7 @@ class MainActivity : AppCompatActivity() {
         btnRequestCapture.setOnClickListener {
             val captureServiceIntent = Intent(this, ScreenCaptureService::class.java)
             startForegroundService(captureServiceIntent)
-            screenCaptureManager.requestPermission(this)
+            screenCaptureManager.requestPermissionForResult(screenCaptureLauncher)
         }
 
         btnLoadConfig.setOnClickListener {
@@ -189,31 +213,18 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    @Suppress("DEPRECATION")
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
-        when (requestCode) {
-            ScreenCaptureManager.REQUEST_CODE_SCREEN_CAPTURE -> {
-                if (resultCode == Activity.RESULT_OK && data != null) {
-                    val metrics = DisplayMetrics()
-                    @Suppress("DEPRECATION")
-                    windowManager.defaultDisplay.getMetrics(metrics)
-                    screenCaptureManager.init(resultCode, data, metrics)
-                    appendLog("截屏权限已授权")
-                    toast("截屏权限已授权")
-                } else {
-                    toast("截屏权限被拒绝")
-                }
-            }
-            REQUEST_OVERLAY_PERMISSION -> {
-                if (Settings.canDrawOverlays(this)) {
-                    toast("悬浮窗权限已授权")
-                    startFloatingWindowService()
-                } else {
-                    toast("悬浮窗权限被拒绝")
-                }
-            }
+    private fun getDisplayMetrics(): DisplayMetrics {
+        val metrics = DisplayMetrics()
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            val bounds = windowManager.currentWindowMetrics.bounds
+            metrics.widthPixels = bounds.width()
+            metrics.heightPixels = bounds.height()
+            metrics.densityDpi = resources.configuration.densityDpi
+        } else {
+            @Suppress("DEPRECATION")
+            windowManager.defaultDisplay.getMetrics(metrics)
         }
+        return metrics
     }
 
     private fun startFloatingWindowService() {

@@ -1,6 +1,5 @@
 package com.example.browndustbot
 
-import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
@@ -12,6 +11,7 @@ import android.media.projection.MediaProjection
 import android.media.projection.MediaProjectionManager
 import android.util.DisplayMetrics
 import android.util.Log
+import androidx.activity.result.ActivityResultLauncher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
@@ -19,7 +19,6 @@ class ScreenCaptureManager(private val context: Context) {
 
     companion object {
         private const val TAG = "ScreenCaptureManager"
-        const val REQUEST_CODE_SCREEN_CAPTURE = 1001
         private const val VIRTUAL_DISPLAY_NAME = "BrownDustCapture"
     }
 
@@ -30,12 +29,9 @@ class ScreenCaptureManager(private val context: Context) {
     private var screenHeight: Int = 0
     private var screenDensity: Int = 0
 
-    fun requestPermission(activity: Activity) {
-        val manager = activity.getSystemService(Context.MEDIA_PROJECTION_SERVICE) as MediaProjectionManager
-        activity.startActivityForResult(
-            manager.createScreenCaptureIntent(),
-            REQUEST_CODE_SCREEN_CAPTURE
-        )
+    fun requestPermissionForResult(launcher: ActivityResultLauncher<Intent>) {
+        val manager = context.getSystemService(Context.MEDIA_PROJECTION_SERVICE) as MediaProjectionManager
+        launcher.launch(manager.createScreenCaptureIntent())
     }
 
     fun init(resultCode: Int, data: Intent, metrics: DisplayMetrics) {

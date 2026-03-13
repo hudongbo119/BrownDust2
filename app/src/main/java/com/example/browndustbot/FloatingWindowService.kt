@@ -119,12 +119,14 @@ class FloatingWindowService : Service() {
 
         btnStart.setOnClickListener {
             TaskEngine.instance?.let { engine ->
-                if (!engine.isRunning()) {
-                    tvStatus.text = "运行中"
-                } else {
+                if (engine.isPaused()) {
                     engine.resumeTask()
                     tvStatus.text = "运行中"
+                } else if (!engine.isRunning()) {
+                    tvStatus.text = "请在主界面启动任务"
                 }
+            } ?: run {
+                tvStatus.text = "请在主界面启动任务"
             }
         }
 
